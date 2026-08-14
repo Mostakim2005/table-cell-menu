@@ -110,7 +110,10 @@ function findTableBounds(editor: Editor, lineNumber: number): { start: number; e
     return { start, end };
 }
 
-function findColumnAtCharacter(line: string, cells: TableCell[], character: number): number {
+function findColumnAtCharacter(
+    cells: TableCell[],
+    character: number
+): number {
     if (cells.length === 0) return -1;
 
     for (const cell of cells) {
@@ -119,7 +122,12 @@ function findColumnAtCharacter(line: string, cells: TableCell[], character: numb
         }
     }
 
-    if (character < cells[0].start) return 0;
+    const firstCell = cells[0];
+
+    if (!firstCell) return -1;
+
+    if (character < firstCell.start) return 0;
+
     return cells.length - 1;
 }
 
@@ -136,7 +144,6 @@ export function getTableInfoAtPosition(editor: Editor, lineNumber: number, chara
     if (!currentRow || currentRow.isSeparator) return null;
 
     const columnIndex = findColumnAtCharacter(
-        editor.getLine(lineNumber),
         currentRow.cells,
         character
     );
