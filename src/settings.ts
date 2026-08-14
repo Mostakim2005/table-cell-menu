@@ -9,12 +9,42 @@ export const DEFAULT_SETTINGS: TableCellMenuSettings = {
     showActionSheet: true
 };
 
-export class TableCellMenuSettingTab extends PluginSettingTab {
-    plugin: TableCellMenuPlugin;
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
 
-    constructor(app: App, plugin: TableCellMenuPlugin) {
+export function normalizeSettings(data: unknown): TableCellMenuSettings {
+    if (!isRecord(data)) {
+        return { ...DEFAULT_SETTINGS };
+    }
+
+    return {
+        showActionSheet:
+            typeof data.showActionSheet === "boolean"
+                ? data.showActionSheet
+                : DEFAULT_SETTINGS.showActionSheet
+    };
+}
+
+export class TableCellMenuSettingTab extends PluginSettingTab {
+    constructor(
+        app: App,
+        private readonly plugin: TableCellMenuPlugin
+    ) {
         super(app, plugin);
-        this.plugin = plugin;
+    }
+
+    getSettingDefinitions() {
+        return [
+            {
+                name: "Enable table cell menu",
+                desc: "Show the mobile-friendly action sheet when you open a table cell context menu.",
+                control: {
+                    type: "toggle",
+                    key: "showActionSheet"
+                }
+            }
+        ];
     }
 
     display(): void {
@@ -23,8 +53,10 @@ export class TableCellMenuSettingTab extends PluginSettingTab {
         containerEl.empty();
 
         new Setting(containerEl)
-            .setName("Action sheet")
-            .setDesc("Use the mobile-friendly action sheet for table cell actions.")
+            .setName("Enable table cell menu")
+            .setDesc(
+                "Show the mobile-friendly action sheet when you open a table cell context menu."
+            )
             .addToggle((toggle) => {
                 toggle
                     .setValue(this.plugin.settings.showActionSheet)

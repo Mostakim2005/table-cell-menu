@@ -1,6 +1,7 @@
 import { MarkdownView, Plugin } from "obsidian";
 import {
     DEFAULT_SETTINGS,
+    normalizeSettings,
     TableCellMenuSettings,
     TableCellMenuSettingTab
 } from "./settings";
@@ -21,12 +22,8 @@ export default class TableCellMenuPlugin extends Plugin {
     }
 
     async loadSettings(): Promise<void> {
-        const data = await this.loadData();
-
-        this.settings = {
-            ...DEFAULT_SETTINGS,
-            ...(data && typeof data === "object" ? data : {})
-        };
+        const data = (await this.loadData()) as unknown;
+        this.settings = normalizeSettings(data);
     }
 
     async saveSettings(): Promise<void> {
@@ -34,43 +31,26 @@ export default class TableCellMenuPlugin extends Plugin {
     }
 
     private handleContextMenu(event: MouseEvent): void {
-        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!this.settings.showActionSheet) return;
 
-        if (!view || view.getMode() !== "source") {
-            return;
-        }
+        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!view || view.getMode() !== "source") return;
 
         const target = event.target;
-
-        if (!(target instanceof HTMLElement)) {
-            return;
-        }
+        if (!(target instanceof HTMLElement)) return;
 
         const editor = view.editor;
         const cursor = editor.getCursor();
         const line = editor.getLine(cursor.line);
 
-        if (!line.includes("|")) {
-            return;
-        }
+        if (!line.includes("|")) return;
 
-        const info = getTableInfoAtPosition(
-            editor,
-            cursor.line,
-            cursor.ch
-        );
-
-        if (!info) {
-            return;
-        }
+        const info = getTableInfoAtPosition(editor, cursor.line, cursor.ch);
+        if (!info) return;
 
         event.preventDefault();
         event.stopPropagation();
 
-        new CellActionSheet(
-            this.app,
-            editor,
-            info
-        ).open();
+        new CellActionSheet(this.app, editor, info).open();
     }
 }
