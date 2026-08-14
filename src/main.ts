@@ -1,13 +1,32 @@
 import { MarkdownView, Plugin } from "obsidian";
-import type { Menu } from "obsidian";
-import { CellActionSheet } from "./ui/cell-action-sheet";
+import {
+    DEFAULT_SETTINGS,
+    TableCellMenuSettings,
+    TableCellMenuSettingTab
+} from "./settings";
 import { getTableInfoAtPosition } from "./table/table-parser";
+import { CellActionSheet } from "./ui/cell-action-sheet";
 
 export default class TableCellMenuPlugin extends Plugin {
-    onload(): void {
+    settings: TableCellMenuSettings;
+
+    async onload(): Promise<void> {
+        await this.loadSettings();
+
+        this.addSettingTab(new TableCellMenuSettingTab(this.app, this));
+
         this.registerDomEvent(document, "contextmenu", (event) => {
             this.handleContextMenu(event);
         });
+    }
+
+    async loadSettings(): Promise<void> {
+        const data = await this.loadData();
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
+    }
+
+    async saveSettings(): Promise<void> {
+        await this.saveData(this.settings);
     }
 
     private handleContextMenu(event: MouseEvent): void {
