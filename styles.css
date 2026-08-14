@@ -1,8 +1,166 @@
-/*
+.table-cell-menu-sheet {
+    width: min(92vw, 440px);
+    max-width: 440px;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.table-cell-menu-sheet .modal-content {
+    padding: 0;
+}
 
-If your plugin does not need CSS, delete this file.
+.table-cell-menu-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+}
 
-*/
+.table-cell-menu-header {
+    padding: 4px 4px 8px;
+}
+
+.table-cell-menu-header h2 {
+    margin: 4px 0 0;
+    font-size: 1.25rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+.table-cell-menu-eyebrow,
+.table-cell-menu-section-title {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.table-cell-menu-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.table-cell-menu-section-title {
+    padding: 0 4px;
+}
+
+.table-cell-menu-action {
+    width: 100%;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 10px;
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    text-align: left;
+    transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.table-cell-menu-action:hover,
+.table-cell-menu-action:focus-visible {
+    border-color: var(--background-modifier-border-hover);
+    background: var(--background-secondary-alt);
+}
+
+.table-cell-menu-action:active {
+    transform: scale(0.985);
+}
+
+.table-cell-menu-action-icon {
+    width: 28px;
+    flex: 0 0 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.table-cell-menu-action-label {
+    flex: 1;
+    font-size: 0.95rem;
+}
+
+.table-cell-menu-action-danger .table-cell-menu-action-icon,
+.table-cell-menu-action-danger .table-cell-menu-action-label {
+    color: var(--text-error);
+}
+
+.table-cell-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.table-cell-menu-action-compact {
+    min-height: 52px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    text-align: center;
+}
+
+.table-cell-menu-action-compact .table-cell-menu-action-icon {
+    width: auto;
+    flex-basis: auto;
+}
+
+.table-cell-menu-action-compact .table-cell-menu-action-label {
+    flex: initial;
+    font-size: 0.78rem;
+}
+
+.table-cell-menu-close {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 2px;
+    border-radius: 10px;
+}
+
+.table-cell-menu-edit {
+    padding: 4px 0;
+}
+
+.table-cell-menu-modal-heading {
+    margin-bottom: 12px;
+}
+
+.table-cell-menu-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.table-cell-menu-actions button {
+    min-height: 46px;
+    border-radius: 10px;
+}
+
+.table-cell-menu-actions button.mod-cta {
+    grid-column: span 1;
+}
+
+@media (max-width: 420px) {
+    .table-cell-menu-content {
+        padding: 16px;
+    }
+
+    .table-cell-menu-sheet {
+        width: 94vw;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .table-cell-menu-action {
+        transition: none;
+    }
+}
+
+.theme-dark .table-cell-menu-action {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+}
