@@ -22,7 +22,11 @@ export default class TableCellMenuPlugin extends Plugin {
 
     async loadSettings(): Promise<void> {
         const data = await this.loadData();
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
+
+        this.settings = {
+            ...DEFAULT_SETTINGS,
+            ...(data && typeof data === "object" ? data : {})
+        };
     }
 
     async saveSettings(): Promise<void> {
