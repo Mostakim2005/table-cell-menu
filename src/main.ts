@@ -8,7 +8,7 @@ import { getTableInfoAtPosition } from "./table/table-parser";
 import { CellActionSheet } from "./ui/cell-action-sheet";
 
 export default class TableCellMenuPlugin extends Plugin {
-    settings: TableCellMenuSettings;
+    settings: TableCellMenuSettings = { ...DEFAULT_SETTINGS };
 
     async onload(): Promise<void> {
         await this.loadSettings();
@@ -35,23 +35,42 @@ export default class TableCellMenuPlugin extends Plugin {
 
     private handleContextMenu(event: MouseEvent): void {
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (!view || view.getMode() !== "source") return;
+
+        if (!view || view.getMode() !== "source") {
+            return;
+        }
 
         const target = event.target;
-        if (!(target instanceof HTMLElement)) return;
+
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
 
         const editor = view.editor;
         const cursor = editor.getCursor();
         const line = editor.getLine(cursor.line);
 
-        if (!line.includes("|")) return;
+        if (!line.includes("|")) {
+            return;
+        }
 
-        const info = getTableInfoAtPosition(editor, cursor.line, cursor.ch);
-        if (!info) return;
+        const info = getTableInfoAtPosition(
+            editor,
+            cursor.line,
+            cursor.ch
+        );
+
+        if (!info) {
+            return;
+        }
 
         event.preventDefault();
         event.stopPropagation();
 
-        new CellActionSheet(this.app, editor, info).open();
+        new CellActionSheet(
+            this.app,
+            editor,
+            info
+        ).open();
     }
 }
