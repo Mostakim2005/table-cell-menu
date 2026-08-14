@@ -3,7 +3,6 @@ import type { TableCell, TableInfo, TableRow } from "../types";
 
 function splitTableLine(line: string): TableCell[] {
     const cells: TableCell[] = [];
-    let start = 0;
     let escaped = false;
     let cellStart = 0;
 
