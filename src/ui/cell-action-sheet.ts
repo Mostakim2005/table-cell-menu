@@ -18,7 +18,7 @@ interface Action {
     label: string;
     icon: string;
     destructive?: boolean;
-    run: () => void;
+    run: () => void | Promise<void>;
 }
 
 export class CellActionSheet extends Modal {
@@ -39,7 +39,7 @@ export class CellActionSheet extends Modal {
         const header = this.contentEl.createDiv({ cls: "table-cell-menu-header" });
         header.createDiv({
             cls: "table-cell-menu-eyebrow",
-            text: `Row ${this.info.rowIndex + 1} · Column ${this.info.columnIndex + 1}`
+            text: `Row ${Math.max(1, this.info.rowIndex)} · Column ${this.info.columnIndex + 1}`
         });
         header.createEl("h2", { text: "Cell actions" });
 
@@ -58,30 +58,27 @@ export class CellActionSheet extends Modal {
             {
                 label: "Copy cell",
                 icon: "⧉",
-                run: () => {
-                    void copyText(getCellText(this.editor, this.info));
-                }
+                run: async () => { await copyText(getCellText(this.editor, this.info)); }
             },
             {
                 label: "Cut cell",
                 icon: "✂",
-                run: () => {
-                    void this.cutCell();
-                }
+                run: () => this.cutCell()
             },
             {
                 label: "Paste cell",
                 icon: "▣",
-                run: () => {
-                    void this.pasteCell();
-                }
+                run: () => this.pasteCell()
             },
             {
                 label: "Clear cell",
                 icon: "×",
                 destructive: true,
                 run: () => {
-                    setCellContent(this.editor, this.info, "");
+                    if (!setCellContent(this.editor, this.info, "")) {
+                        new Notice("The cell could not be changed.");
+                        return;
+                    }
                     new Notice("Cell cleared.");
                 }
             }
@@ -93,16 +90,15 @@ export class CellActionSheet extends Modal {
         structure.createDiv({ cls: "table-cell-menu-section-title", text: "Structure" });
 
         const grid = structure.createDiv({ cls: "table-cell-menu-grid" });
-
         const structuralActions: Action[] = [
-            { label: "Row above", icon: "↑", run: () => insertRow(this.editor, this.info, true) },
-            { label: "Row below", icon: "↓", run: () => insertRow(this.editor, this.info, false) },
-            { label: "Column left", icon: "←", run: () => insertColumn(this.editor, this.info, true) },
-            { label: "Column right", icon: "→", run: () => insertColumn(this.editor, this.info, false) },
-            { label: "Duplicate row", icon: "＋", run: () => duplicateRow(this.editor, this.info) },
-            { label: "Duplicate column", icon: "＋", run: () => duplicateColumn(this.editor, this.info) },
-            { label: "Delete row", icon: "−", destructive: true, run: () => deleteRow(this.editor, this.info) },
-            { label: "Delete column", icon: "−", destructive: true, run: () => deleteColumn(this.editor, this.info) }
+            { label: "Insert row above", icon: "↑", run: () => this.runOperation(() => insertRow(this.editor, this.info, true)) },
+            { label: "Insert row below", icon: "↓", run: () => this.runOperation(() => insertRow(this.editor, this.info, false)) },
+            { label: "Insert column left", icon: "←", run: () => this.runOperation(() => insertColumn(this.editor, this.info, true)) },
+            { label: "Insert column right", icon: "→", run: () => this.runOperation(() => insertColumn(this.editor, this.info, false)) },
+            { label: "Duplicate row", icon: "＋", run: () => this.runOperation(() => duplicateRow(this.editor, this.info)) },
+            { label: "Duplicate column", icon: "＋", run: () => this.runOperation(() => duplicateColumn(this.editor, this.info)) },
+            { label: "Delete row", icon: "−", destructive: true, run: () => this.runOperation(() => deleteRow(this.editor, this.info), "Could not delete the row.") },
+            { label: "Delete column", icon: "−", destructive: true, run: () => this.runOperation(() => deleteColumn(this.editor, this.info), "Could not delete the column.") }
         ];
 
         for (const action of structuralActions) this.addAction(grid, action, true);
@@ -122,31 +118,40 @@ export class CellActionSheet extends Modal {
                 action.destructive ? "table-cell-menu-action-danger" : ""
             ].filter(Boolean)
         });
+        button.type = "button";
 
-        const icon = button.createSpan({ cls: "table-cell-menu-action-icon", text: action.icon });
-        icon.setAttribute("aria-hidden", "true");
+        button.createSpan({ cls: "table-cell-menu-action-icon", text: action.icon }).setAttribute("aria-hidden", "true");
         button.createSpan({ cls: "table-cell-menu-action-label", text: action.label });
 
         button.addEventListener("click", () => {
             this.close();
-            action.run();
+            void Promise.resolve(action.run()).catch((error: unknown) => {
+                console.error("Table Cell Menu action failed", error);
+                new Notice("The table action failed.");
+            });
         });
+    }
+
+    private async runOperation(operation: () => boolean, failure = "The table could not be changed."): Promise<void> {
+        if (!operation()) {
+            new Notice(failure);
+            return;
+        }
+        new Notice("Table updated.");
     }
 
     private async cutCell(): Promise<void> {
         const text = getCellText(this.editor, this.info);
         if (!(await copyText(text))) return;
-
-        setCellContent(this.editor, this.info, "");
-        new Notice("Cell cut.");
+        if (setCellContent(this.editor, this.info, "")) new Notice("Cell cut.");
+        else new Notice("The cell could not be changed.");
     }
 
     private async pasteCell(): Promise<void> {
         const text = await readClipboard();
         if (text === null) return;
-
-        setCellContent(this.editor, this.info, text);
-        new Notice("Cell pasted.");
+        if (setCellContent(this.editor, this.info, text)) new Notice("Cell pasted.");
+        else new Notice("The cell could not be changed.");
     }
 
     onClose(): void {
