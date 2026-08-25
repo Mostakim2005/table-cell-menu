@@ -114,7 +114,9 @@ function findColumnAtCharacter(cells: TableCell[], character: number): number {
     for (const cell of cells) {
         if (character >= cell.start && character <= cell.end) return cell.index;
     }
-    return character < cells[0].start ? 0 : cells.length - 1;
+    const firstCell = cells[0];
+    if (!firstCell) return -1;
+    return character < firstCell.start ? 0 : cells.length - 1;
 }
 
 /**
@@ -163,8 +165,11 @@ export function getTableColumnCount(info: TableInfo): number {
 
 export function validateTableLines(lines: string[]): boolean {
     if (lines.length < 2) return false;
-    const header = scanCells(lines[0]);
-    const separator = scanCells(lines[1]);
+    const headerLine = lines[0];
+    const separatorLine = lines[1];
+    if (headerLine === undefined || separatorLine === undefined) return false;
+    const header = scanCells(headerLine);
+    const separator = scanCells(separatorLine);
     if (!header.length || header.length !== separator.length) return false;
     if (!separator.every((cell) => isSeparatorCell(cell.content))) return false;
 
